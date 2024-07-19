@@ -11,3 +11,8 @@
 
 #!.yarn/cache
 .pnp.*
+
+package-lock.json
+node_modules
+
+coverage
