@@ -7,7 +7,9 @@ globalThis.SpreadsheetApp = SpreadsheetApp;
 
 let testSpreadsheet;
 let testSheet;
-const todaysDate = new Date().toLocaleDateString("en-GB");
+// Google Sheets recognises dates entered as "en-GB" locale strings and returns them as UTC strings
+const todaysDate = new Date().toUTCString();
+const todaysPrettyDate = new Date().toLocaleDateString("en-GB");
 
 describe("The multi-ceremony rota script", () => {
   beforeEach(() => {
@@ -33,7 +35,7 @@ describe("The multi-ceremony rota script", () => {
       });
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", todaysDate, todaysDate],
+        ["Alice", "U123", todaysPrettyDate, todaysDate],
         ["Bob", "U456", "", ""],
       ];
       const expectedStandupMessage =
@@ -67,7 +69,7 @@ describe("The multi-ceremony rota script", () => {
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
         ["Alice", "U123", "01/01/1970", todaysDate],
-        ["Bob", "U456", todaysDate, todaysDate],
+        ["Bob", "U456", todaysPrettyDate, todaysDate],
       ];
       const expectedStandupMessage =
         "Morning everyone, a new week means it's <@U456>'s turn to run standups.";
@@ -99,7 +101,7 @@ describe("The multi-ceremony rota script", () => {
       });
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", todaysDate, todaysDate],
+        ["Alice", "U123", todaysPrettyDate, todaysDate],
         ["Bob", "U456", "", todaysDate],
       ];
       const expectedStandupMessage =
@@ -136,7 +138,7 @@ describe("The multi-ceremony rota script", () => {
       });
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", todaysDate, todaysDate],
+        ["Alice", "U123", todaysPrettyDate, todaysPrettyDate],
         ["Bob", "U456", "", ""],
       ];
       const expectedStandupMessage =
@@ -176,8 +178,8 @@ describe("The multi-ceremony rota script", () => {
       });
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", todaysDate, pastDate],
-        ["Bob", "U456", "", todaysDate],
+        ["Alice", "U123", todaysPrettyDate, pastDate],
+        ["Bob", "U456", "", todaysPrettyDate],
       ];
       const expectedStandupMessage =
         "Morning everyone, a new week means it's <@U123>'s turn to run standups.";
@@ -214,7 +216,7 @@ describe("The multi-ceremony rota script", () => {
       });
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", todaysDate, pastDate],
+        ["Alice", "U123", todaysPrettyDate, pastDate],
         ["Bob", "U456", "", ""],
       ];
       const expectedStandupMessage =
@@ -241,15 +243,17 @@ describe("The multi-ceremony rota script", () => {
       const testData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
         ["Alice", "U123", "", "01/01/1970"],
-        ["Bob", "U456", "", pastDate],
+        ["Bob", "U456", "", "holiday"],
+        ["Charlie", "U789", "", pastDate],
       ];
       testData.forEach((row) => {
         testSheet.appendRow(row);
       });
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", todaysDate, todaysDate],
+        ["Alice", "U123", todaysPrettyDate, todaysPrettyDate],
         ["Bob", "U456", "", ""],
+        ["Charlie", "U789", "", ""],
       ];
       const expectedStandupMessage =
         "Morning everyone, a new week means it's <@U123>'s turn to run standups.";
@@ -287,7 +291,7 @@ describe("The multi-ceremony rota script", () => {
       });
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", todaysDate, "01/01/1970"],
+        ["Alice", "U123", todaysPrettyDate, "01/01/1970"],
         ["Bob", "U456", "", pastDate],
       ];
       const expectedStandupMessage =
@@ -309,6 +313,46 @@ describe("The multi-ceremony rota script", () => {
       expect(mockLogger.log).toHaveBeenCalledWith("Alice is next for standup");
       expect(mockLogger.log).toHaveBeenCalledWith("payload sent");
     });
+    it("should ignore non-dates when looking for the last date", () => {
+      const pastDate = generateDateDaysAgo(14);
+      const testData = [
+        ["Name", "Slack user ID", "Standup week", "Retro week"],
+        ["Alice", "U123", "", pastDate],
+        ["Bob", "U456", "", "holiday"],
+        ["Charlie", "U789", "", ""],
+      ];
+      testData.forEach((row) => {
+        testSheet.appendRow(row);
+      });
+      const expectedData = [
+        ["Name", "Slack user ID", "Standup week", "Retro week"],
+        ["Alice", "U123", todaysPrettyDate, pastDate],
+        ["Bob", "U456", "", "holiday"],
+        ["Charlie", "U789", "", todaysPrettyDate],
+      ];
+      const expectedStandupMessage =
+        "Morning everyone, a new week means it's <@U123>'s turn to run standups.";
+      const expectedRetroMessage =
+        "We've got our retro this week too, and <@U789> you're up.";
+
+      rotaScript.pickNamesAndNotify();
+
+      const actualData = testSpreadsheet
+        .getSheetByName("Rota")
+        .getDataRange()
+        .getValues();
+      expect(actualData).toEqual(expectedData);
+      expect(mockUrlFetchApp.fetch).toHaveBeenCalledTimes(1);
+      expect(mockUrlFetchApp.fetch).toHaveBeenCalledWith(
+        "https://hooks.slack.com/services/dummywebhook",
+        buildExpectedWebhook(expectedStandupMessage, expectedRetroMessage),
+      );
+      expect(mockLogger.log).toHaveBeenCalledTimes(4);
+      expect(mockLogger.log).toHaveBeenCalledWith("Alice is next for standup");
+      expect(mockLogger.log).toHaveBeenCalledWith("retro week");
+      expect(mockLogger.log).toHaveBeenCalledWith("Charlie is next for retro");
+      expect(mockLogger.log).toHaveBeenCalledWith("payload sent");
+    });
   });
 
   it("should log errors received posting the webhook payload", () => {
@@ -322,7 +366,7 @@ describe("The multi-ceremony rota script", () => {
     });
     const expectedData = [
       ["Name", "Slack user ID", "Standup week", "Retro week"],
-      ["Alice", "U123", todaysDate, todaysDate],
+      ["Alice", "U123", todaysPrettyDate, todaysPrettyDate],
       ["Bob", "U456", "", ""],
     ];
     const expectedStandupMessage =

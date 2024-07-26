@@ -14,6 +14,10 @@ Google Apps Script currently only supports weekly or monthly schedules, so suppo
 
 This script supports one ceremony running on one cadence, in this case standups rotating weekly, alongside another ceremony on another cadence, here a retro on a two week cadence. It can easily be updated to support additional ceremonies and/or altering their cadences.
 
+## Skipping people
+
+Skipping people can be achieved by entering something into the relevant cell in the Google Sheet before the script runs, such as the word "holiday". Both scripts will skip over these entries and pick the next person. These manual entries can then be subsequently removed and the next time the script runs it will fill in the gaps, or they can be left and the script will clear the column(s) when they are full as normal.
+
 # How it works
 
 These scripts require a rota Google spreadsheet, with one sheet/tab called `Rota` that has a table of at least 3 columns: Name, Slack user ID, and a ceremony name. Column order is not important, and columns are referenced using the lowercased first word of the column heading. So in the included single ceremony script, the column headings would need to be `Name`, `Slack ...`, and `Standup ...`. The included multiple ceremony script then also needs a `Retro ...` column.

@@ -54,7 +54,8 @@ function checkCeremonyOccurrence(columnName, cadenceInDays) {
   let shouldOccur = false;
 
   for (let i = 1; i < rowData.length; i++) {
-    if (rowData[i][rotaColumns[columnName]] !== "") {
+    const cellValue = rowData[i][rotaColumns[columnName]];
+    if (cellValue !== "" && Date.parse(cellValue) > 0) {
       index = i;
     }
   }
