@@ -50,25 +50,27 @@ function generateColumnMap() {
 
 function checkCeremonyOccurrence(columnName, cadenceInDays) {
   const rowData = rota.getDataRange().getValues();
-  let index;
+  const dates = [];
   let shouldOccur = false;
 
   for (let i = 1; i < rowData.length; i++) {
     const cellValue = rowData[i][rotaColumns[columnName]];
     if (cellValue !== "" && Date.parse(cellValue) > 0) {
-      index = i;
+      dates.push(cellValue);
     }
   }
-  if (index === undefined) {
+  if (dates.length < 1) {
     shouldOccur = true;
     Logger.log(`no previous dates for ${columnName}`);
     return shouldOccur;
   }
 
+  const mostRecentDate = dates.reduce((a, b) => {
+    return new Date(a) > new Date(b) ? a : b;
+  });
+
   const timeNow = new Date().getTime();
-  const timeOfLastOccurrence = new Date(
-    rowData[index][rotaColumns[columnName]],
-  ).getTime();
+  const timeOfLastOccurrence = new Date(mostRecentDate).getTime();
 
   const microSecondsDiff = Math.abs(timeNow - timeOfLastOccurrence);
   const daysDiff = Math.floor(microSecondsDiff / (1000 * 60 * 60 * 24));

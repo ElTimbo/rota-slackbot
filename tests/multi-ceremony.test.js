@@ -166,20 +166,23 @@ describe("The multi-ceremony rota script", () => {
       expect(mockLogger.log).toHaveBeenCalledWith("Alice is next for retro");
       expect(mockLogger.log).toHaveBeenCalledWith("payload sent");
     });
-    it("should pick the next name when the previous date is 14 or more days ago", () => {
-      const pastDate = generateDateDaysAgo(14);
+    it("should pick the next name when all dates are 14 or more days ago", () => {
+      const closestDate = generateDateDaysAgo(14);
+      const earlierDate = generateDateDaysAgo(15);
       const testData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", "", pastDate],
+        ["Alice", "U123", "", earlierDate],
         ["Bob", "U456", "", ""],
+        ["Charlie", "U789", "", closestDate],
       ];
       testData.forEach((row) => {
         testSheet.appendRow(row);
       });
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", todaysPrettyDate, pastDate],
+        ["Alice", "U123", todaysPrettyDate, earlierDate],
         ["Bob", "U456", "", todaysPrettyDate],
+        ["Charlie", "U789", "", closestDate],
       ];
       const expectedStandupMessage =
         "Morning everyone, a new week means it's <@U123>'s turn to run standups.";
@@ -204,20 +207,23 @@ describe("The multi-ceremony rota script", () => {
       expect(mockLogger.log).toHaveBeenCalledWith("Bob is next for retro");
       expect(mockLogger.log).toHaveBeenCalledWith("payload sent");
     });
-    it("should not pick a name when the previous date is less than 14 days ago", () => {
-      const pastDate = generateDateDaysAgo(13);
+    it("should not pick a name when there are any dates less than 14 days ago", () => {
+      const closestDate = generateDateDaysAgo(13);
+      const earlierDate = generateDateDaysAgo(14);
       const testData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", "", pastDate],
+        ["Alice", "U123", "", closestDate],
         ["Bob", "U456", "", ""],
+        ["Charlie", "U789", "", earlierDate],
       ];
       testData.forEach((row) => {
         testSheet.appendRow(row);
       });
       const expectedData = [
         ["Name", "Slack user ID", "Standup week", "Retro week"],
-        ["Alice", "U123", todaysPrettyDate, pastDate],
+        ["Alice", "U123", todaysPrettyDate, closestDate],
         ["Bob", "U456", "", ""],
+        ["Charlie", "U789", "", earlierDate],
       ];
       const expectedStandupMessage =
         "Morning everyone, a new week means it's <@U123>'s turn to run standups.";
