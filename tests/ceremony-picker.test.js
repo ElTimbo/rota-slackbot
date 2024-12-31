@@ -1,7 +1,7 @@
 const SpreadsheetApp = require("gasmask").SpreadsheetApp;
 const mockLogger = require("gasmask").Logger;
 const mockUrlFetchApp = require("gasmask").UrlFetchApp;
-const rotaScript = require("../src/multi-ceremony");
+const rotaScript = require("../src/ceremony-picker");
 
 globalThis.SpreadsheetApp = SpreadsheetApp;
 
@@ -11,7 +11,7 @@ let testSheet;
 const todaysDate = new Date().toUTCString();
 const todaysPrettyDate = new Date().toLocaleDateString("en-GB");
 
-describe("The multi-ceremony rota script", () => {
+describe("The ceremony rota script", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 

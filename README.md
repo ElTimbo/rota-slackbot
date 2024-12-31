@@ -1,26 +1,28 @@
 # Scrum Ceremony Rota Slackbot
 
-This repo contains two scripts for [Google Apps Script](https://script.google.com/home), both of which send Slack alerts to notify people when it is their turn to run specific scrum ceremonies. They use a Google sheet for the rota, finding who's turn it is to run the ceremony, inserting the current date to check them off, and then sending a Slack webhook to post the message.
+This repo contains two scripts that, with a [Google spreadsheet](https://sheets.google.com) and [Google Apps Script](https://script.google.com/home), can be used to automate a rota for running your team's scrum ceremonies.
 
-## A single ceremony
+## Selecting who will run your ceremonies
 
-This script supports a single ceremony, in this case standups. Running this on a weekly schedule will result in a Slack message each week, tagging the individual and letting them know that they are running standups for that week. It could be easily modified to support different ceremonies or responsibilities.
+The [ceremony-picker script](src/ceremony-picker.js) allocates someone to run each ceremony, inserting the current date to check them off, and posts a Slack message tagging those people via a webhook.
 
-### Ceremonies not on a weekly cadence
+Google Apps Script currently only supports weekly or monthly schedules, so this script incorporates the `checkCeremonyOccurrence` function to cater for ceremonies on different cadences. It includes two example ceremonies, a `standup` that changes facilitator on a weekly basis, and a `retro` that rotates every fortnight.
 
-Google Apps Script currently only supports weekly or monthly schedules, so supporting ceremonies or responsibilities that do not rotate on those cadences will need the implementation from the multi-ceremony script.
+> To add more ceremonies, simply duplicate the relevant code block, adding the message and updating the column name as needed. See the [how it works section](#how-it-works) for more. The `checkCeremonyOccurrence` function can be removed entirely if not needed for any ceremony.
 
-## Multiple ceremonies
+### Skipping people
 
-This script supports one ceremony running on one cadence, in this case standups rotating weekly, alongside another ceremony on another cadence, here a retro on a two week cadence. It can easily be updated to support additional ceremonies and/or altering their cadences.
+Skipping people can be done by entering something into the relevant cell in the Google spreadsheet before the script runs, such as the word "holiday". The script will skip over these entries and pick the next person. These manual entries can then be subsequently removed and script will fill in the gaps when it next runs, or they can be left and the script will clear the column(s) when they are full as normal.
 
-## Skipping people
+## Reminding those running the ceremonies
 
-Skipping people can be achieved by entering something into the relevant cell in the Google Sheet before the script runs, such as the word "holiday". Both scripts will skip over these entries and pick the next person. These manual entries can then be subsequently removed and the next time the script runs it will fill in the gaps, or they can be left and the script will clear the column(s) when they are full as normal.
+Slack does not support scheduling messages via webhooks, so the [ceremony-reminder script](src/ceremony-reminder.js) can be used to post a follow up message to remind those running each ceremony. It is designed to be run on a weekly schedule and will post a Slack message for any ceremonies with an individual allocated within the last week.
+
+> For extra ceremonies add a message and include the column name in the `ceremonies` array. See the [how it works section](#how-it-works) below for more details.
 
 # How it works
 
-These scripts require a rota Google spreadsheet, with one sheet/tab called `Rota` that has a table of at least 3 columns: Name, Slack user ID, and a ceremony name. Column order is not important, and columns are referenced using the lowercased first word of the column heading. So in the included single ceremony script, the column headings would need to be `Name`, `Slack ...`, and `Standup ...`. The included multiple ceremony script then also needs a `Retro ...` column.
+These scripts require a rota Google spreadsheet, with one sheet/tab called `Rota` that has a table of at least 3 columns: Name, Slack user ID, and the ceremony name(s). Column order is not important, and columns are referenced in the code using the lowercased first word of the column heading. So for both the included [ceremony-picker](src/ceremony-picker.js) and [ceremony-reminder](src/ceremony-reminder.js) scripts, the column headings would need to be `Name`, `Slack ...`, `Standup ...`, and `Retro ...`.
 
 > Slack user (or member) IDs are used to tag the users, and can be copied via a menu on each user's profile.
 

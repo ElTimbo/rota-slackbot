@@ -24,10 +24,12 @@ function pickNamesAndNotify() {
 
   payload = buildPayload();
 
+  // if the ceremony rota aligns with the script schedule use this block
   resetColumnIfNeeded("standup");
   const standupUserId = pickAndUpdateName("standup");
   addCeremonyToPayload("standup", standupUserId);
 
+  // if a ceremony rota does not align with the script schedule use this block, providing that rota cadence in days
   const isRetroWeek = checkCeremonyOccurrence("retro", 14);
   if (isRetroWeek) {
     resetColumnIfNeeded("retro");
