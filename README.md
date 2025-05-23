@@ -34,6 +34,10 @@ Once both these are created, a Google Apps Script project should be created from
 
 At this point the content of the chosen script can be copied into the Apps Script project (omitting the imports & export at the top that are needed for local development). The Slack webhook URL needs to be replaced with the incoming webhook URL for the Slack app. The ceremony name(s) and column(s) can also be modified, along with the Slack message content, to match the Google sheet and use case. Once everything has been tested, a Trigger can be enabled for the Apps Script project to run the script on a suitable schedule.
 
+### Supporting multiple sheets
+
+For cases where ceremonies pull from different groups, such a support role for engineers, there are `multi-sheet` versions of each script. These replicate the existing functionality, using separate `Team` and `Engineers` sheets/tabs for the different groups and adding a `Support` responsibility.
+
 ## Working locally
 
 These scripts have a full local testing suite, using stubs for the Google spreadsheet to validate how they are reading and modifying it. These can be run with the following command:
