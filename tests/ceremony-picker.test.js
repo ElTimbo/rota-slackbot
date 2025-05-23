@@ -7,8 +7,8 @@ globalThis.SpreadsheetApp = SpreadsheetApp;
 
 let testSpreadsheet;
 let testSheet;
-// Google Sheets recognises dates entered as "en-GB" locale strings and returns them as UTC strings
-const todaysDate = new Date().toUTCString();
+
+const todaysDate = generateDateDaysAgo(0);
 const todaysPrettyDate = new Date().toLocaleDateString("en-GB");
 
 describe("The ceremony rota script", () => {
@@ -429,7 +429,8 @@ function buildExpectedWebhook(...args) {
 
 function generateDateDaysAgo(days) {
   const date = new Date();
+  // Google Sheets recognises dates entered as "en-GB" locale strings and returns them as midnight
+  date.setHours(0, 0, 0, 0);
   date.setDate(date.getDate() - days);
-  // Google Sheets recognises dates entered as "en-GB" locale strings and returns them as UTC strings
-  return date.toUTCString();
+  return date.toString();
 }

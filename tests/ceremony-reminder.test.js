@@ -103,7 +103,7 @@ describe("The ceremony rota reminder script", () => {
     expect(mockLogger.log).toHaveBeenCalledWith("no payload to send");
   });
   it("should not send a reminder for a ceremony with today's date", () => {
-    const todaysDate = new Date().toUTCString();
+    const todaysDate = generateDateDaysAgo(0);
     const testData = [
       ["Name", "Slack user ID", "Standup week", "Retro week"],
       ["Alice", "U123", todaysDate, "01/01/1970"],
@@ -187,7 +187,8 @@ function buildExpectedWebhook(...args) {
 
 function generateDateDaysAgo(days) {
   const date = new Date();
+  // Google Sheets recognises dates entered as "en-GB" locale strings and returns them as midnight
+  date.setHours(0, 0, 0, 0);
   date.setDate(date.getDate() - days);
-  // Google Sheets recognises dates entered as "en-GB" locale strings and returns them as UTC strings
-  return date.toUTCString();
+  return date.toString();
 }
